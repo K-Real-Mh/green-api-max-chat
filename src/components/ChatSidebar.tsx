@@ -30,7 +30,11 @@ export function ChatSidebar({ idInstance, chats, activeChatId, busy, error, onCr
       <label htmlFor="phone">Новый чат по номеру</label>
       <div className="new-chat-row">
         <input id="phone" type="tel" placeholder="+7 999 123-45-67" value={phoneInput} onChange={(event) => setPhoneInput(event.target.value)} />
-        <button type="submit" disabled={busy} aria-label="Создать чат">{busy ? '…' : '+'}</button>
+        <button type="submit" disabled={busy} aria-label="Создать чат">
+          {busy ? '…' : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>}
+        </button>
       </div>
     </form>
     {error && !activeChatId && <p className="sidebar-error error" role="alert">{error}</p>}

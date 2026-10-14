@@ -5,7 +5,7 @@ function endpoint(credentials: Credentials, method: string): string {
   return `${base.origin}/waInstance${encodeURIComponent(credentials.idInstance)}/${method}/${encodeURIComponent(credentials.apiTokenInstance)}`
 }
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
+async function request<T>(url: string, init?: RequestInit, emptyValue?: T): Promise<T> {
   let response: Response
   try {
     response = await fetch(url, init)
@@ -18,7 +18,12 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     const details = await response.json().catch(() => null) as { message?: string; reason?: string } | null
     throw new Error(details?.message || details?.reason || `GREEN-API вернул ошибку ${response.status}`)
   }
-  return response.json() as Promise<T>
+  const body = await response.text()
+  if (!body.trim()) {
+    if (emptyValue !== undefined) return emptyValue
+    throw new Error('GREEN-API вернул пустой ответ')
+  }
+  return JSON.parse(body) as T
 }
 
 export async function checkAccount(credentials: Credentials, phoneNumber: string) {
@@ -42,7 +47,7 @@ export async function sendMessage(credentials: Credentials, chatId: string, mess
 
 export async function receiveNotification(credentials: Credentials, signal: AbortSignal) {
   const url = `${endpoint(credentials, 'receiveNotification')}?receiveTimeout=5`
-  return request<Notification | null>(url, { signal })
+  return request<Notification | null>(url, { signal }, null)
 }
 
 export async function deleteNotification(credentials: Credentials, receiptId: number, signal: AbortSignal) {
