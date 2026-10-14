@@ -59,6 +59,7 @@ function App() {
   const [chatError, setChatError] = useState('')
   const [connectionError, setConnectionError] = useState('')
   const seenMessageIds = useRef(new Set<string>())
+  const sessionId = useRef(0)
   const messageEnd = useRef<HTMLDivElement>(null)
 
   const activeChat = chats.find((chat) => chat.chatId === activeChatId)
@@ -119,6 +120,7 @@ function App() {
     event.preventDefault()
     setFormError('')
     try {
+      sessionId.current += 1
       setCredentials(readCredentials(apiUrl, idInstance, apiTokenInstance))
       setApiTokenInstance('')
     } catch (error) {
@@ -127,12 +129,14 @@ function App() {
   }
 
   function disconnect() {
+    sessionId.current += 1
     setCredentials(null)
     setChats([])
     setActiveChatId(null)
     setDraft('')
     setConnectionError('')
     setChatError('')
+    setBusy(null)
     seenMessageIds.current.clear()
   }
 
@@ -154,17 +158,19 @@ function App() {
       return
     }
     setBusy('chat')
+    const requestSession = sessionId.current
     try {
       const result = await checkAccount(credentials, phone)
+      if (requestSession !== sessionId.current) return
       if (result.status === false) throw new Error(result.reason || 'Инстанс не авторизован')
       if (!result.exist || !result.chatId) throw new Error('На этом номере нет аккаунта MAX')
       setChats((current) => [...current, { chatId: result.chatId!, phone, messages: [] }])
       setActiveChatId(result.chatId)
       setPhoneInput('')
     } catch (error) {
-      setChatError(errorText(error))
+      if (requestSession === sessionId.current) setChatError(errorText(error))
     } finally {
-      setBusy(null)
+      if (requestSession === sessionId.current) setBusy(null)
     }
   }
 
@@ -179,8 +185,10 @@ function App() {
     }
     setChatError('')
     setBusy('send')
+    const requestSession = sessionId.current
     try {
       const result = await sendMessage(credentials, activeChatId, text)
+      if (requestSession !== sessionId.current) return
       setChats((current) => current.map((chat) => chat.chatId === activeChatId
         ? { ...chat, messages: [...chat.messages, {
             id: result.idMessage,
@@ -192,9 +200,9 @@ function App() {
       ))
       setDraft('')
     } catch (error) {
-      setChatError(errorText(error))
+      if (requestSession === sessionId.current) setChatError(errorText(error))
     } finally {
-      setBusy(null)
+      if (requestSession === sessionId.current) setBusy(null)
     }
   }
 
