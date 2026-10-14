@@ -13,6 +13,12 @@ npm run dev
 
 Откройте `http://127.0.0.1:5173/` после запуска сервера. Для проверки сборки: `npm run build`.
 
+## Публикация
+
+Сайт публикуется через GitHub Pages по адресу [k-real-mh.github.io/green-api-max-chat](https://k-real-mh.github.io/green-api-max-chat/). В настройках репозитория выберите **Settings → Pages → Build and deployment → Source: GitHub Actions**. После отправки изменений в `main` workflow соберёт проект и опубликует папку `dist`.
+
+Для использования чата на опубликованном сайте введите параметры своего инстанса GREEN-API. Токен не добавляется в репозиторий и не передаётся в GitHub Actions.
+
 ## Подготовка GREEN-API
 
 1. Зарегистрируйтесь в [кабинете GREEN-API](https://console.green-api.com/), создайте инстанс MAX и авторизуйте его с аккаунтом MAX.
